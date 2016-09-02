@@ -6,6 +6,25 @@ unmarhsalling to a map[string]interface{}. The leaf nodes of the tree all
 have type []string and are the values taken from the PostForm.
 
 
+## Why?
+
+I was decoding a form using Gorilla Schema. Part of the form was best
+represented by a slice of a struct type from another package. I did not want to
+add schema tags to the other package. My options were:
+
+
+ 0. Make the names of the elements in the form match the fields of the
+ externally defined struct. (Very sensible, but I didn't want to stray from the
+ naming convention in use for form elements.)
+ 0. Implement a copy of the external struct and add schema tags to it. (This solution lasted a while.)
+ 0. Read the whole form manually from the PostForm map. (Tedious)
+ 0. Write a generic solution to unpack a PostForm into a convenient data structure. (Aha!)
+
+Later on, I decided I wanted to allow my site members to edit a set of documents
+where the structure could not be predicted at coding time. That's why I finally
+wrote this package.
+
+
 ## Key interpretation
 
 PostForm keys are interpreted in the same way that Gorilla Schema interprets
