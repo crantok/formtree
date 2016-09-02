@@ -36,6 +36,10 @@ would be located at (pseudocode)
 
     tree["fields"][0]["content"][3]["postcode"]
 
+Using formtree, the syntax would be
+
+    tree.Slice("fields").Map(1).Slice("content").Map(1).Values("postcode")
+
 Each of those indexing operations would require a type assertion to cast from
 interface{} to map[string]interface{} or []interface{} or []string.
 
@@ -104,27 +108,27 @@ which produce this http.Request.PostForm (output from [go-spew](https://github.c
 
 we obtain this tree
 
-    (map[string]interface {}) (len=2) {
-    	(string) (len=6) "fields": ([]interface {}) (len=2 cap=2) {
-    		(map[string]interface {}) (len=3) {
+    (formtree.FormTree) (len=2) {
+    	(string) (len=6) "fields": (formtree.Slice) (len=2 cap=2) {
+    		(formtree.FormTree) (len=3) {
     			(string) (len=5) "label": ([]string) (len=1 cap=1) {
     				(string) (len=2) "HQ"
     			},
-    			(string) (len=4) "type": ([]string) (len=1 cap=1) {
-    				(string) (len=8) "location"
-    			},
-    			(string) (len=7) "content": (map[string]interface {}) (len=2) {
-    				(string) (len=8) "postcode": ([]string) (len=1 cap=1) {
-    					(string) (len=4) "814h"
-    				},
+    			(string) (len=7) "content": (formtree.FormTree) (len=2) {
     				(string) (len=7) "address": ([]string) (len=1 cap=1) {
     					(string) (len=4) "BlAh"
+    				},
+    				(string) (len=8) "postcode": ([]string) (len=1 cap=1) {
+    					(string) (len=4) "814h"
     				}
+    			},
+    			(string) (len=4) "type": ([]string) (len=1 cap=1) {
+    				(string) (len=8) "location"
     			}
     		},
-    		(map[string]interface {}) (len=3) {
-    			(string) (len=7) "content": ([]interface {}) (len=2 cap=2) {
-    				(map[string]interface {}) (len=2) {
+    		(formtree.FormTree) (len=3) {
+    			(string) (len=7) "content": (formtree.Slice) (len=2 cap=2) {
+    				(formtree.FormTree) (len=2) {
     					(string) (len=7) "address": ([]string) (len=1 cap=1) {
     						(string) (len=6) "addr 1"
     					},
@@ -132,7 +136,7 @@ we obtain this tree
     						(string) (len=4) "pc 1"
     					}
     				},
-    				(map[string]interface {}) (len=2) {
+    				(formtree.FormTree) (len=2) {
     					(string) (len=7) "address": ([]string) (len=1 cap=1) {
     						(string) (len=6) "addr 2"
     					},

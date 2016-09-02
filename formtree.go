@@ -12,8 +12,10 @@
 //
 //     tree["fields"][0]["content"][3]["postcode"]
 //
-// Each of those indexing operations would require a type assertion to cast from
-// interface{} to map[string]interface{} or []interface{} or []string.
+// Using formtree, the syntax would be
+//
+//     tree.Slice("fields").Map(1).Slice("content").Map(1).Values("postcode")
+//
 package formtree
 
 import (
@@ -23,13 +25,61 @@ import (
 	"github.com/crantok/imath"
 )
 
-func addValueToMap(m map[string]interface{}, keyPath []string, values []string) {
+// FormTree is a tree of form values.
+type FormTree map[string]interface{}
+
+// Map returns the FormTree corresponding to the given key.
+func (f FormTree) Map(key string) FormTree {
+	result := f[key]
+	if result == nil {
+		return nil
+	}
+	return f[key].(FormTree)
+}
+
+// Slice returns the Slice corresponding to the given key.
+func (f FormTree) Slice(key string) Slice {
+	result := f[key]
+	if result == nil {
+		return nil
+	}
+	return f[key].(Slice)
+}
+
+// Values returns the form values corresponding to the given key.
+func (f FormTree) Values(key string) []string {
+	result := f[key]
+	if result == nil {
+		return nil
+	}
+	return f[key].([]string)
+}
+
+// Slice is one kind of node in a FormTree.
+type Slice []interface{}
+
+// Map returns the FormTree at the given index.
+func (s Slice) Map(index int) FormTree {
+	return s[index].(FormTree)
+}
+
+// Slice returns the slice at the given index.
+func (s Slice) Slice(index int) Slice {
+	return s[index].(Slice)
+}
+
+// Values returns the form values at the given index.
+func (s Slice) Values(index int) []string {
+	return s[index].([]string)
+}
+
+func addValuesToTree(m FormTree, keyPath []string, values []string) {
 
 	for _, v := range keyPath[:len(keyPath)-1] {
 		if m[v] == nil {
-			m[v] = map[string]interface{}{}
+			m[v] = FormTree{}
 		}
-		m = m[v].(map[string]interface{})
+		m = m[v].(FormTree)
 	}
 
 	k := keyPath[len(keyPath)-1]
@@ -55,7 +105,7 @@ func decomposeKeyPath(key string) []string {
 	return result
 }
 
-func sliceify(m map[string]interface{}) interface{} {
+func sliceify(m FormTree) interface{} {
 
 	isSlice := true
 	var indexes []int
@@ -63,7 +113,7 @@ func sliceify(m map[string]interface{}) interface{} {
 	for k, v := range m {
 
 		// sliceify from the leaves to the root
-		if child, isNotLeaf := v.(map[string]interface{}); isNotLeaf {
+		if child, isNotLeaf := v.(FormTree); isNotLeaf {
 			m[k] = sliceify(child)
 		}
 
@@ -80,7 +130,7 @@ func sliceify(m map[string]interface{}) interface{} {
 		return m
 	}
 
-	slice := make([]interface{}, imath.Max(indexes...)+1)
+	slice := make(Slice, imath.Max(indexes...)+1)
 	for _, idx := range indexes {
 		slice[idx] = m[strconv.Itoa(idx)]
 	}
@@ -89,12 +139,12 @@ func sliceify(m map[string]interface{}) interface{} {
 
 // New returns a tree of values derived from an http.Request.PostForm or
 // equivalent input.
-func New(form map[string][]string) map[string]interface{} {
+func New(form map[string][]string) FormTree {
 
-	result := map[string]interface{}{}
+	result := FormTree{}
 
 	for k, v := range form {
-		addValueToMap(result, decomposeKeyPath(k), v)
+		addValuesToTree(result, decomposeKeyPath(k), v)
 	}
 
 	// Discarding the final result of sliceify because we are going to return a

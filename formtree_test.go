@@ -9,47 +9,21 @@ import (
 
 func Test(t *testing.T) {
 
-	/* Test data derived from these form elements:
-
-	   <div class="document-id">
-	       <input type="hidden" name="document-id" value="476128394763523">
-	   </div>
-
-	   <div class="field.0">
-	       <input type="text" name="fields.0.type" value="location">
-	       <input type="text" name="fields.0.label" value="HQ">
-	       <input type="text" name="fields.0.content.address" value="BlAh">
-	       <input type="text" name="fields.0.content.postcode" value="814h">
-	   </div>
-
-	   <div class="field.1">
-	       <input type="text" name="fields.1.type" value="location">
-	       <input type="text" name="fields.1.label" value="outlets">
-	       <input type="text" name="fields.1.content.0.address" value="addr 1">
-	       <input type="text" name="fields.1.content.0.postcode" value="pc 1">
-	       <input type="text" name="fields.1.content.1.address" value="addr 2">
-	       <input type="text" name="fields.1.content.1.postcode" value="pc 2">
-	   </div>
-	*/
-	form := url.Values{
-		"fields.1.content.1.postcode": []string{"pc 2"},
-		"fields.0.content.postcode":   []string{"814h"},
-		"fields.1.content.1.address":  []string{"addr 2"},
-		"fields.0.label":              []string{"HQ"},
-		"fields.0.content.address":    []string{"BlAh"},
-		"fields.1.type":               []string{"location"},
-		"fields.1.label":              []string{"outlets"},
-		"fields.1.content.0.address":  []string{"addr 1"},
-		"fields.1.content.0.postcode": []string{"pc 1"},
-		"document-id":                 []string{"476128394763523"},
-		"fields.0.type":               []string{"location"},
+	var tests = []struct {
+		key    string
+		values []string
+		index  int
+		fn     func(formtree.FormTree) []string
+	}{
+		{"a.b.1.2.c", []string{"val1"}, 0, func(ft formtree.FormTree) []string { return ft.Map("a").Slice("b").Slice(1).Map(2).Values("c") }},
+		{"1.2.a.b.3", []string{"val2", "val3"}, 1, func(ft formtree.FormTree) []string { return ft.Slice("1").Map(2).Map("a").Slice("b").Values(3) }},
 	}
 
-	tree := formtree.New(form)
-
-	treeVal := tree["fields"].([]interface{})[1].(map[string]interface{})["content"].([]interface{})[1].(map[string]interface{})["postcode"].([]string)[0]
-	formVal := form["fields.1.content.1.postcode"][0]
-	if treeVal != formVal {
-		t.Errorf(`Examined form["fields.1.content.1.postcode"][0], expected %v, got %v`, treeVal, formVal)
+	for _, x := range tests {
+		form := url.Values{x.key: x.values}
+		tree := formtree.New(form)
+		if x.fn(tree)[x.index] != x.values[x.index] {
+			t.Errorf(`Examined %v (values index %v), expected %q, got %q`, form, x.index, x.values[x.index], x.fn(tree)[x.index])
+		}
 	}
 }
