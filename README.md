@@ -38,7 +38,7 @@ would be located at (pseudocode)
 
 Using formtree, the syntax would be
 
-    tree.Slice("fields").Map(1).Slice("content").Map(1).Values("postcode")
+    tree.Slice("fields").Map(0).Slice("content").Map(3).Values("postcode")
 
 Each of those indexing operations would require a type assertion to cast from
 interface{} to map[string]interface{} or []interface{} or []string.
