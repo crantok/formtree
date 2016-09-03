@@ -55,6 +55,11 @@ func (f FormTree) Values(key string) []string {
 	return f[key].([]string)
 }
 
+// Value returns the first form value corresponding to the given key.
+func (f FormTree) Value(key string) string {
+	return f.Values(key)[0]
+}
+
 // Slice is one kind of node in a FormTree.
 type Slice []interface{}
 
@@ -71,6 +76,11 @@ func (s Slice) Slice(index int) Slice {
 // Values returns the form values at the given index.
 func (s Slice) Values(index int) []string {
 	return s[index].([]string)
+}
+
+// Value returns the first form value at the given index.
+func (s Slice) Value(index int) string {
+	return s.Values(index)[0]
 }
 
 func addValuesToTree(m FormTree, keyPath []string, values []string) {
