@@ -14,8 +14,13 @@
 //
 // Using formtree, the syntax would be
 //
-//     tree.Slice("fields").Map(1).Slice("content").Map(1).Values("postcode")
+//     tree.Slice("fields").Map(0).Slice("content").Map(3).Values("postcode")
 //
+// or
+//
+//     tree.Slice("fields").Map(0).Slice("content").Map(3).Value("postcode")
+//
+// if you knew that there would be only one value.
 package formtree
 
 import (
