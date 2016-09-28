@@ -34,7 +34,8 @@ import (
 	"github.com/crantok/imath"
 )
 
-// FormTree is a tree of form values.
+// FormTree is a tree of form values and, like Slice, may be a node within a
+// FormTree.
 type FormTree map[string]interface{}
 
 // Map returns the FormTree corresponding to the given key.
