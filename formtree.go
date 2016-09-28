@@ -156,8 +156,8 @@ func sliceify(m FormTree) interface{} {
 	return slice
 }
 
-// New returns a tree of values derived from an http.Request.PostForm or
-// equivalent input.
+// New returns a new FormTree whose structure is derived from the stucture of
+// the keys in the input map.
 func New(form map[string][]string) FormTree {
 
 	result := FormTree{}
