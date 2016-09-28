@@ -1,10 +1,11 @@
 # Package formtree
 
-Package formtree derives a tree of form values from an http.Request.PostForm.
-The tree has the kind of structure that json.Unmarshal builds when
-unmarhsalling to a map[string]interface{}. The leaf nodes of the tree all
-have type []string and are the values taken from the PostForm.
-
+Package formtree creates a tree of form values from a url.Values or any other
+type derived from map[string][]string . (One use of the url.Values type is
+http.Request.PostForm). The created tree has the kind of structure that
+json.Unmarshal builds when unmarhsalling to an empty interface. The leaf nodes
+of the tree all have type []string and are the values taken from the original
+map.
 
 ## Why?
 
@@ -26,8 +27,9 @@ wrote this package.
 
 ## Key interpretation
 
-PostForm keys are interpreted in the same way that Gorilla Schema interprets
-them when populating a struct, so the form values that had the the key
+Keys (e.g. html form field names used as the keys in http.Request.PostForm) are
+interpreted in the same way that Gorilla Schema interprets them when populating
+a struct, so the form values that had the the key
 
     "fields.0.content.3.postcode"
 
@@ -39,11 +41,11 @@ Using formtree, the syntax would be
 
     tree.Slice("fields").Map(0).Slice("content").Map(3).Values("postcode")
 
-That code returns the array of values from the PostForm. If you know you only
-have one value for the given key then you can call Value() rather than Values():
+or
 
     tree.Slice("fields").Map(0).Slice("content").Map(3).Value("postcode")
                                                         -----
+if you knew that there would be only one value.
 
 
 ## Example
