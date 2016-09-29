@@ -2,8 +2,8 @@
 // type derived from map[string][]string . (One use of the url.Values type is
 // http.Request.PostForm). The created tree has the kind of structure that
 // json.Unmarshal builds when unmarhsalling to an empty interface. The leaf
-// nodes of the tree all have type []string and are the values taken from the
-// original map.
+// nodes of the tree have type string or []string and are the values taken from
+// the original map.
 //
 // Keys (e.g. html form field names used as the keys in http.Request.PostForm)
 // are interpreted in the same way that Gorilla Schema interprets them when

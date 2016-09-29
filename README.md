@@ -4,8 +4,8 @@ Package formtree creates a tree of form values from a url.Values or any other
 type derived from map[string][]string . (One use of the url.Values type is
 http.Request.PostForm). The created tree has the kind of structure that
 json.Unmarshal builds when unmarhsalling to an empty interface. The leaf nodes
-of the tree all have type []string and are the values taken from the original
-map.
+of the tree all have type string or []string and are the values taken from
+the original map.
 
 ## Why?
 
