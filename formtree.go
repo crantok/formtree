@@ -44,7 +44,7 @@ func (f FormTree) Map(key string) FormTree {
 	if result == nil {
 		return nil
 	}
-	return f[key].(FormTree)
+	return result.(FormTree)
 }
 
 // Slice returns the Slice corresponding to the given key.
@@ -53,21 +53,34 @@ func (f FormTree) Slice(key string) Slice {
 	if result == nil {
 		return nil
 	}
-	return f[key].(Slice)
+	return result.(Slice)
 }
 
 // Values returns the form values corresponding to the given key.
 func (f FormTree) Values(key string) []string {
-	result := f[key]
-	if result == nil {
+	values := f[key]
+	if values == nil {
 		return nil
 	}
-	return f[key].([]string)
+	if slice, isSlice := values.([]string); isSlice {
+		return slice
+	}
+	return []string{values.(string)}
 }
 
 // Value returns the first form value corresponding to the given key.
 func (f FormTree) Value(key string) string {
-	return f.Values(key)[0]
+	value := f[key]
+	if value == nil {
+		return ""
+	}
+	if slice, isSlice := value.([]string); isSlice {
+		if len(slice) == 0 {
+			return ""
+		}
+		return slice[0]
+	}
+	return value.(string)
 }
 
 // Slice is one kind of node in a FormTree.
@@ -85,12 +98,23 @@ func (s Slice) Slice(index int) Slice {
 
 // Values returns the form values at the given index.
 func (s Slice) Values(index int) []string {
-	return s[index].([]string)
+	values := s[index]
+	if slice, isSlice := values.([]string); isSlice {
+		return slice
+	}
+	return []string{values.(string)}
 }
 
 // Value returns the first form value at the given index.
 func (s Slice) Value(index int) string {
-	return s.Values(index)[0]
+	value := s[index]
+	if slice, isSlice := value.([]string); isSlice {
+		if len(slice) == 0 {
+			return ""
+		}
+		return slice[0]
+	}
+	return value.(string)
 }
 
 func addValuesToTree(m FormTree, keyPath []string, values []string) {
@@ -108,7 +132,23 @@ func addValuesToTree(m FormTree, keyPath []string, values []string) {
 		panic("Adding value to map with a key that already exists.")
 	}
 
-	m[k] = values
+	// Add the leaf node.
+	//
+	// If the leaf only contains one value then add a single string, not the
+	// slice. This increases similarity with the output of json.Unmarshal and
+	// friends.
+	//
+	// We would not normally expect to see an empty slice in a url.Values
+	// instance. I've decided to use nil rather than "" or []string{}  in this
+	// case.
+	switch len(values) {
+	case 0:
+		// do nothing - no leaf node
+	case 1:
+		m[k] = values[0]
+	default:
+		m[k] = values
+	}
 }
 
 func decomposeKeyPath(key string) []string {
