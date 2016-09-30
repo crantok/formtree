@@ -29,7 +29,7 @@ wrote this package.
 
 Keys (e.g. html form field names used as the keys in http.Request.PostForm) are
 interpreted in the same way that Gorilla Schema interprets them when populating
-a struct, so the form values that had the the key
+a struct, so the form value that had the the key
 
     "fields.0.content.3.postcode"
 
@@ -39,13 +39,13 @@ would be located at (pseudocode)
 
 Using formtree, the syntax would be
 
-    tree.Slice("fields").Map(0).Slice("content").Map(3).Values("postcode")
+    tree.SliceAt("fields").MapAt(0).SliceAt("content").MapAt(3).ValueAt("postcode")
 
 or
 
-    tree.Slice("fields").Map(0).Slice("content").Map(3).Value("postcode")
-                                                        -----
-if you knew that there would be only one value.
+    tree.SliceAt("fields").MapAt(0).SliceAt("content").MapAt(3).AllValuesAt("postcode")
+
+if there might be multiple values that share that key.
 
 
 ## Example
@@ -91,27 +91,27 @@ which produce this http.Request.PostForm
 we obtain this tree
 
     formtree.FormTree{
-        "document-id": []string{"476128394763523"},
-        "fields": formtree.Slice{
-            formtree.FormTree{
-                "type":  []string{"location"},
-                "label": []string{"HQ"},
-                "content": formtree.FormTree{
-                    "address":  []string{"BlAh"},
-                    "postcode": []string{"814h"},
+        "document-id": "476128394763523",
+        "fields": []interface{}{
+            map[string]interface{}{
+                "type":  "location",
+                "label": "HQ",
+                "content": map[string]interface{}{
+                    "address":  "BlAh",
+                    "postcode": "814h",
                 },
             },
-            formtree.FormTree{
-                "type":  []string{"location"},
-                "label": []string{"outlets"},
-                "content": formtree.Slice{
-                    formtree.FormTree{
-                        "address":  []string{"addr 1"},
-                        "postcode": []string{"pc 1"},
+            map[string]interface{}{
+                "type":  "location",
+                "label": "outlets",
+                "content": []interface{}{
+                    map[string]interface{}{
+                        "address":  "addr 1",
+                        "postcode": "pc 1",
                     },
-                    formtree.FormTree{
-                        "address":  []string{"addr 2"},
-                        "postcode": []string{"pc 2"},
+                    map[string]interface{}{
+                        "address":  "addr 2",
+                        "postcode": "pc 2",
                     },
                 },
             },

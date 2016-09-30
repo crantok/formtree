@@ -7,7 +7,7 @@
 //
 // Keys (e.g. html form field names used as the keys in http.Request.PostForm)
 // are interpreted in the same way that Gorilla Schema interprets them when
-// populating a struct, so the form values that had the the key
+// populating a struct, so the form value that had the the key
 //
 //     "fields.0.content.3.postcode"
 //
@@ -17,14 +17,13 @@
 //
 // Using formtree, the syntax would be
 //
-//     tree.Slice("fields").Map(0).Slice("content").Map(3).Values("postcode")
+//     tree.SliceAt("fields").MapAt(0).SliceAt("content").MapAt(3).ValueAt("postcode")
 //
 // or
 //
-//     tree.Slice("fields").Map(0).Slice("content").Map(3).Value("postcode")
-//                                                         -----
+//     tree.SliceAt("fields").MapAt(0).SliceAt("content").MapAt(3).AllValuesAt("postcode")
 //
-// if you knew that there would be only one value.
+// if there might be multiple values that share that key.
 package formtree
 
 import (
@@ -39,25 +38,25 @@ import (
 type FormTree map[string]interface{}
 
 // Map returns the FormTree corresponding to the given key.
-func (f FormTree) Map(key string) FormTree {
+func (f FormTree) MapAt(key string) FormTree {
 	result := f[key]
 	if result == nil {
 		return nil
 	}
-	return result.(FormTree)
+	return FormTree(result.(map[string]interface{}))
 }
 
 // Slice returns the Slice corresponding to the given key.
-func (f FormTree) Slice(key string) Slice {
+func (f FormTree) SliceAt(key string) Slice {
 	result := f[key]
 	if result == nil {
 		return nil
 	}
-	return result.(Slice)
+	return Slice(result.([]interface{}))
 }
 
 // Values returns the form values corresponding to the given key.
-func (f FormTree) Values(key string) []string {
+func (f FormTree) AllValuesAt(key string) []string {
 	values := f[key]
 	if values == nil {
 		return nil
@@ -69,7 +68,7 @@ func (f FormTree) Values(key string) []string {
 }
 
 // Value returns the first form value corresponding to the given key.
-func (f FormTree) Value(key string) string {
+func (f FormTree) ValueAt(key string) string {
 	value := f[key]
 	if value == nil {
 		return ""
@@ -87,17 +86,17 @@ func (f FormTree) Value(key string) string {
 type Slice []interface{}
 
 // Map returns the FormTree at the given index.
-func (s Slice) Map(index int) FormTree {
-	return s[index].(FormTree)
+func (s Slice) MapAt(index int) FormTree {
+	return FormTree(s[index].(map[string]interface{}))
 }
 
 // Slice returns the slice at the given index.
-func (s Slice) Slice(index int) Slice {
-	return s[index].(Slice)
+func (s Slice) SliceAt(index int) Slice {
+	return Slice(s[index].([]interface{}))
 }
 
 // Values returns the form values at the given index.
-func (s Slice) Values(index int) []string {
+func (s Slice) AllValuesAt(index int) []string {
 	values := s[index]
 	if slice, isSlice := values.([]string); isSlice {
 		return slice
@@ -106,7 +105,7 @@ func (s Slice) Values(index int) []string {
 }
 
 // Value returns the first form value at the given index.
-func (s Slice) Value(index int) string {
+func (s Slice) ValueAt(index int) string {
 	value := s[index]
 	if slice, isSlice := value.([]string); isSlice {
 		if len(slice) == 0 {
@@ -117,13 +116,13 @@ func (s Slice) Value(index int) string {
 	return value.(string)
 }
 
-func addValuesToTree(m FormTree, keyPath []string, values []string) {
+func addValuesToTree(m map[string]interface{}, keyPath []string, values []string) {
 
 	for _, v := range keyPath[:len(keyPath)-1] {
 		if m[v] == nil {
-			m[v] = FormTree{}
+			m[v] = map[string]interface{}{}
 		}
-		m = m[v].(FormTree)
+		m = m[v].(map[string]interface{})
 	}
 
 	k := keyPath[len(keyPath)-1]
@@ -165,7 +164,7 @@ func decomposeKeyPath(key string) []string {
 	return result
 }
 
-func sliceify(m FormTree) interface{} {
+func sliceify(m map[string]interface{}) interface{} {
 
 	isSlice := true
 	var indexes []int
@@ -173,7 +172,7 @@ func sliceify(m FormTree) interface{} {
 	for k, v := range m {
 
 		// sliceify from the leaves to the root
-		if child, isNotLeaf := v.(FormTree); isNotLeaf {
+		if child, isNotLeaf := v.(map[string]interface{}); isNotLeaf {
 			m[k] = sliceify(child)
 		}
 
@@ -190,7 +189,7 @@ func sliceify(m FormTree) interface{} {
 		return m
 	}
 
-	slice := make(Slice, imath.Max(indexes...)+1)
+	slice := make([]interface{}, imath.Max(indexes...)+1)
 	for _, idx := range indexes {
 		slice[idx] = m[strconv.Itoa(idx)]
 	}

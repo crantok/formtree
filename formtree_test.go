@@ -19,13 +19,33 @@ func Test(t *testing.T) {
 			"a.b.1.2.c",
 			[]string{"val1"},
 			0,
-			func(ft formtree.FormTree) string { return ft.Map("a").Slice("b").Slice(1).Map(2).Value("c") },
+			func(ft formtree.FormTree) string {
+				return ft.MapAt("a").SliceAt("b").SliceAt(1).MapAt(2).ValueAt("c")
+			},
+		},
+		{
+			"a.b.1.2.c",
+			[]string{"val1", "val4"},
+			0,
+			func(ft formtree.FormTree) string {
+				return ft.MapAt("a").SliceAt("b").SliceAt(1).MapAt(2).ValueAt("c")
+			},
 		},
 		{
 			"1.2.a.b.3",
 			[]string{"val2", "val3"},
 			1,
-			func(ft formtree.FormTree) string { return ft.Slice("1").Map(2).Map("a").Slice("b").Values(3)[1] },
+			func(ft formtree.FormTree) string {
+				return ft.SliceAt("1").MapAt(2).MapAt("a").SliceAt("b").AllValuesAt(3)[1]
+			},
+		},
+		{
+			"a.b.1.2.c",
+			[]string{"val5"},
+			0,
+			func(ft formtree.FormTree) string {
+				return ft.MapAt("a").SliceAt("b").SliceAt(1).MapAt(2).AllValuesAt("c")[0]
+			},
 		},
 	}
 
